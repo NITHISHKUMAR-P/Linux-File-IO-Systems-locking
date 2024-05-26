@@ -46,38 +46,60 @@ int main() {
 #include <string.h>
 #include <unistd.h>
 #include <sys/file.h>
-int main (int argc, char* argv[])
-{ char* file = argv[1];
- int fd;
- struct flock lock;
- printf ("opening %s\n", file);
- /* Open a file descriptor to the file. */
- fd = open (file, O_WRONLY);
-// acquire shared lock
-if (flock(fd, LOCK_SH) == -1) {
-    printf("error");
-}else
-{printf("Acquiring shared lock using flock");
+
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        printf("Usage: %s <filename>\n", argv[0]);
+        return 1;
+    }
+
+    char* file = argv[1];
+    int fd;
+    struct flock lock;
+
+    printf("Opening %s\n", file);
+
+    // Open the file with read-write permissions
+    fd = open(file, O_RDWR);
+    if (fd == -1) {
+        perror("Error opening file");
+        return 1;
+    }
+
+    // Acquire shared lock
+    lock.l_type = F_RDLCK; // Shared lock
+    lock.l_whence = SEEK_SET;
+    lock.l_start = 0;
+    lock.l_len = 0;
+    if (fcntl(fd, F_SETLK, &lock) == -1) {
+        perror("Error acquiring shared lock");
+    } else {
+        printf("Acquiring shared lock using fcntl\n");
+    }
+    getchar();
+
+    // Upgrade to exclusive lock
+    lock.l_type = F_WRLCK; // Exclusive lock
+    if (fcntl(fd, F_SETLK, &lock) == -1) {
+        perror("Error acquiring exclusive lock");
+    } else {
+        printf("Acquiring exclusive lock using fcntl\n");
+    }
+    getchar();
+
+    // Release lock
+    lock.l_type = F_UNLCK;
+    if (fcntl(fd, F_SETLK, &lock) == -1) {
+        perror("Error releasing lock");
+    } else {
+        printf("Unlocking\n");
+    }
+    getchar();
+
+    close(fd);
+    return 0;
 }
-getchar();
-// non-atomically upgrade to exclusive lock
-// do it in non-blocking mode, i.e. fail if can't upgrade immediately
-if (flock(fd, LOCK_EX | LOCK_NB) == -1) {
-    printf("error");
-}else
-{printf("Acquiring exclusive lock using flock");}
-getchar();
-// release lock
-// lock is also released automatically when close() is called or process exits
-if (flock(fd, LOCK_UN) == -1) {
-    printf("error");
-}else{
-printf("unlocking");
-}
-getchar();
-close (fd);
-return 0;
-}
+
 ```
 # OUTPUT:
 ## C program that illustrates files copying:
