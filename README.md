@@ -20,19 +20,23 @@ Execute the C Program for the desired output.
 
 ## 1.To Write a C program that illustrates files copying 
 ```c
-include <sys/stat.h>
+#include <sys/stat.h>
 #include <fcntl.h>
 #include <stdlib.h>
-int main()
-{
-char block[1024];
-int in, out;
-int nread;
-in = open("filecopy.c", O_RDONLY);
-out = open("file.out", O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR);
-while((nread = read(in,block,sizeof(block))) > 0)
-write(out,block,nread);
-exit(0);}
+#include <stdio.h> // Include stdio.h for perror()
+
+int main() {
+    char block[1024];
+    int in, out;
+    int nread;
+
+    in = open("filecopy.c", O_RDONLY);
+
+    out = open("file.out", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+
+    exit(EXIT_SUCCESS);
+}
+
 ```
 
 ## 2.To Write a C program that illustrates files locking
